@@ -1,0 +1,86 @@
+---
+title: "2020 Summary"
+author: "Heather Noonan"
+date: "3/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+january <- read.csv("January/january_transactions.csv")
+january <- january%>%mutate(Month = "January")
+february <- read.csv("February/february_transactions.csv")
+february <- february%>%mutate(Month = "February")
+march <- read.csv("march_transactions.csv")
+march <- march%>%mutate(Month = "March")
+
+year <- rbind(january, february, march)
+year$Month <- factor(year$Month, levels = c("January", "February", "March"))
+```
+
+```{r setup}
+expenses <- c("Sorority", "Groceries", "DC Trip", "Not Sure", "Personal","Presents", "School", "Subscriptions", "Christmas Break", "Emergency", "Healthcare", "Stock Purchase", "Spring Break","Food")
+
+income <- c("Mom","Paycheck","Reimbursement", "Interest Income", "Stock Dividend")
+```
+
+## Spending Habits
+```{r expenses}
+year$group <- rep(NA, length(year$Category))
+year$group[year$Category %in% expenses] <-"Expense"
+year$group[year$Category %in% income] <- "Income"
+
+total_expenses <- year%>%filter(group == "Expense")%>%group_by(Category)%>%summarize(Amount = sum(Amount))
+
+total_expenses%>%ggplot(aes(x = Category, y = Amount, fill= Category))+geom_col()+coord_flip()+geom_text(aes(label = Amount))+theme(legend.position = "none")+labs(title = "Spending Breakdown by Category", y = "Amount($)")
+```
+
+###Recurring Expenses
+```{r recurring}
+recurring <- total_expenses%>%filter(Category %in% c("Groceries", "School", "Personal", "Emergency", "Food", "Subscriptions", "Stock Purchase", "Sorority", "Healthcare"))
+
+recurring%>%ggplot(aes(x = Category, y = Amount, fill= Category))+geom_col()+coord_flip()+geom_text(aes(label = Amount))+theme(legend.position = "none")+labs(title = "Spending Breakdown by Category", subtitle = "Recurring Expenses", y = "Amount($)")
+
+
+```
+
+##Spending Per Month
+```{r avgerages}
+
+sums <- year%>%filter(Category %in% c("Groceries", "School", "Personal", "Emergency", "Zack", "Subscriptions", "Date Night", "Stock Purchase", "Sorority", "Healthcare"))%>%group_by( Category, Month)%>%summarize(Total = sum(Amount))
+
+
+sums%>%filter(Category == "Groceries")%>%ggplot(aes(x = Month, y = Total))+geom_point(color ="darkgreen")+geom_line(aes(group = 1), color = "darkgreen")+labs(title = "Grocery Spending", y = "Amount($)")+geom_text(aes(label = Total, y = Total+5))
+
+sums%>%filter(Category == "Subscriptions")%>%ggplot(aes(x = Month, y = Total))+geom_point(color ="blue")+geom_line(aes(group = 1),color = "blue")+labs(title = "Subscriptions", y = "Amount($)")+geom_text(aes(label = Total, y = Total+1))
+
+sums%>%filter(Category %in% c("Personal"))%>%ggplot(aes(x = Month, y =Total))+geom_point(color = "pink")+geom_line(aes(group = 1), color = "pink")+labs(title = "Nonessential Spending Overtime", y = "Amount($)")+geom_text(aes(label = Total, y = Total+5))
+```
+
+##Income
+```{r income}
+total_income <- year%>%filter(group == "Income")%>%group_by(Category)%>%summarize(Amount = sum(Amount))
+
+total_income%>%ggplot(aes(x = Category, y = Amount, fill = Category))+geom_col()+geom_text(aes(label = Amount))+theme(legend.position = "none")+labs(title = "Breakdown of Income", y = "Amount($)")
+```
+
+```{r income over time}
+incomeOT <- year%>%filter(group == "Income")%>%group_by(Category, Month)%>%summarize(Total = sum(Amount))
+
+incomeOT%>%ggplot(aes(x = Month, y =Total, color=Category))+geom_point()+geom_line(aes(group=Category))+labs(title = "Income Overtime", y="Amount($)")+geom_text(aes(label=Total, y = Total+15))
+```
+
+##Overall Totals
+```{r totals}
+#year%>%filter(!is.na(group))%>%group_by(group, Month)%>%summarize(Total = sum(Amount))%>%ggplot(aes(x=Month, y= Total, color = group))+geom_point()+geom_line(aes(group = group))+geom_text(aes(label=Total))+labs(title = "Expenses vs. Income Overtime", x = "Type", y = "Amount($)")
+
+totals <- year%>%group_by(group)%>%filter(!is.na(group))%>%summarize(Amount = sum(Amount))
+
+totals%>%ggplot(aes(x=group, y= Amount, fill = group, label = Amount))+geom_col()+theme(legend.position = "none")+geom_text()+labs(title = "Expenses vs. Income", x = "Type", y = "Amount($)")
+```
