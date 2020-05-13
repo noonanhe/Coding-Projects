@@ -13,10 +13,6 @@ using std::vector;
 using std::string;
 using std::ctime;
 
-/**
- * This is part of a project I am currently working on now in Dr. Liu's research laboratory.
- * The code is not complete but it's a little taste of what I am doing.
- */
 
 //=======================================Alignment Class=============================================
 /**
@@ -216,8 +212,8 @@ void write_normal_file(string f_name, Alignment* align){
 //=================================================Main ========================================
 
 /**
- * there is still lots of commented out code in this main because I am currently using it to test
- * different simulation parameters and to read in different files.
+ * there is still lots of commented out code in this main because I  have used it to test
+ * different simulation parameters and to read in different files. I decided to leave them in here as examples
  */
 int main(){
     srand(time(0));
